@@ -1,0 +1,276 @@
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SUFFIX_UI_Library"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game:GetService("CoreGui")
+
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Compact Medium-Small Window Box (430 x 260) with Icon Sidebar
+local Box = Instance.new("Frame")
+Box.Name = "SUFFIXBox"
+Box.Size = UDim2.new(0, 430, 0, 260)
+Box.Position = UDim2.new(0.5, -215, 0.5, -130)
+Box.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Box.BorderSizePixel = 0
+Box.Parent = ScreenGui
+
+-- Rounded Corners (6px radius)
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 6)
+UICorner.Parent = Box
+
+-- Outer Border Outline
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(45, 45, 45)
+UIStroke.Thickness = 1
+UIStroke.Parent = Box
+
+-- ================= TOP HEADER BAR & DRAGGING =================
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 36)
+TopBar.Position = UDim2.new(0, 0, 0, 0)
+TopBar.BackgroundTransparency = 1
+TopBar.Parent = Box
+
+-- Make Window Draggable
+local dragging, dragInput, dragStart, startPos
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Box.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+TopBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        Box.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Main Menu Title
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Size = UDim2.new(0, 160, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "SUFFIX-Ui"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 15
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+-- SubTitle next to Title
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Name = "SubTitle"
+SubTitle.Size = UDim2.new(0, 160, 1, 0)
+SubTitle.Position = UDim2.new(0, 90, 0, 0)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "|  Library"
+SubTitle.TextColor3 = Color3.fromRGB(140, 140, 140)
+SubTitle.TextSize = 12
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+SubTitle.Parent = TopBar
+
+-- Top-Right Minimize Button (-)
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Name = "MinimizeButton"
+MinimizeButton.Size = UDim2.new(0, 26, 0, 26)
+MinimizeButton.AnchorPoint = Vector2.new(1, 0.5)
+MinimizeButton.Position = UDim2.new(1, -8, 0.5, 0)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+MinimizeButton.BorderColor3 = Color3.fromRGB(50, 50, 50)
+MinimizeButton.Text = "-"
+MinimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+MinimizeButton.TextSize = 16
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.Parent = TopBar
+
+local MinButtonCorner = Instance.new("UICorner")
+MinButtonCorner.CornerRadius = UDim.new(0, 4)
+MinButtonCorner.Parent = MinimizeButton
+
+-- White Horizontal Divider Line
+local HeaderLine = Instance.new("Frame")
+HeaderLine.Name = "HeaderLine"
+HeaderLine.Size = UDim2.new(1, 0, 0, 1)
+HeaderLine.Position = UDim2.new(0, 0, 1, 0)
+HeaderLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+HeaderLine.BackgroundTransparency = 0.75
+HeaderLine.BorderSizePixel = 0
+HeaderLine.Parent = TopBar
+
+-- Main Content Container
+local ContentMain = Instance.new("Frame")
+ContentMain.Name = "ContentMain"
+ContentMain.Size = UDim2.new(1, 0, 1, -36)
+ContentMain.Position = UDim2.new(0, 0, 0, 36)
+ContentMain.BackgroundTransparency = 1
+ContentMain.Parent = Box
+
+local isMinimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        ContentMain.Visible = false
+        Box:TweenSize(UDim2.new(0, 430, 0, 36), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+        MinimizeButton.Text = "+"
+    else
+        Box:TweenSize(UDim2.new(0, 430, 0, 260), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.15, true)
+        task.wait(0.1)
+        ContentMain.Visible = true
+        MinimizeButton.Text = "-"
+    end
+end)
+
+-- ================= ICON SIDEBAR & PERFECT VERTICAL LINE =================
+local SIDEBAR_WIDTH = 46
+local TabSidebar = Instance.new("Frame")
+TabSidebar.Name = "TabSidebar"
+TabSidebar.Size = UDim2.new(0, SIDEBAR_WIDTH, 1, 0)
+TabSidebar.Position = UDim2.new(0, 0, 0, 0)
+TabSidebar.BackgroundTransparency = 1
+TabSidebar.Parent = ContentMain
+
+local TabLine = Instance.new("Frame")
+TabLine.Name = "TabLine"
+TabLine.Size = UDim2.new(0, 1, 1, 0)
+TabLine.Position = UDim2.new(1, 0, 0, 0)
+TabLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TabLine.BackgroundTransparency = 0.75
+TabLine.BorderSizePixel = 0
+TabLine.Parent = TabSidebar
+
+local TabList = Instance.new("ScrollingFrame")
+TabList.Name = "TabList"
+TabList.Size = UDim2.new(1, 0, 1, -8)
+TabList.Position = UDim2.new(0, 0, 0, 4)
+TabList.BackgroundTransparency = 1
+TabList.BorderSizePixel = 0
+TabList.ScrollBarThickness = 0
+TabList.Parent = TabSidebar
+
+local TabListLayout = Instance.new("UIListLayout")
+TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabListLayout.Padding = UDim.new(0, 6)
+TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabListLayout.Parent = TabList
+
+local TabListPadding = Instance.new("UIPadding")
+TabListPadding.PaddingTop = UDim.new(0, 4)
+TabListPadding.Parent = TabList
+
+-- Content Area (Right Side)
+local ContentArea = Instance.new("Frame")
+ContentArea.Name = "ContentArea"
+ContentArea.Size = UDim2.new(1, -SIDEBAR_WIDTH, 1, 0)
+ContentArea.Position = UDim2.new(0, SIDEBAR_WIDTH, 0, 0)
+ContentArea.BackgroundTransparency = 1
+ContentArea.Parent = ContentMain
+
+local allTabButtons = {}
+local allPages = {}
+
+-- Flexible Icon Tab Creator
+local function AddIconTab(iconInput)
+    local TabBtn = Instance.new("ImageButton")
+    TabBtn.Size = UDim2.new(0, 34, 0, 34)
+    TabBtn.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    TabBtn.BorderSizePixel = 0
+    
+    if type(iconInput) == "string" then
+        TabBtn.Image = iconInput
+    else
+        TabBtn.Image = "rbxthumb://type=Asset&id=" .. tostring(iconInput) .. "&w=150&h=150"
+    end
+    
+    TabBtn.ImageColor3 = Color3.fromRGB(150, 150, 150)
+    TabBtn.Parent = TabList
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 6)
+    Corner.Parent = TabBtn
+
+    -- Page Container
+    local Page = Instance.new("ScrollingFrame")
+    Page.Size = UDim2.new(1, 0, 1, 0)
+    Page.BackgroundTransparency = 1
+    Page.BorderSizePixel = 0
+    Page.ScrollBarThickness = 3
+    Page.Visible = false
+    Page.Parent = ContentArea
+
+    local PageLayout = Instance.new("UIListLayout")
+    PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    PageLayout.Padding = UDim.new(0, 6)
+    PageLayout.Parent = Page
+
+    local PagePadding = Instance.new("UIPadding")
+    PagePadding.PaddingTop = UDim.new(0, 10)
+    PagePadding.PaddingLeft = UDim.new(0, 10)
+    PagePadding.PaddingRight = UDim.new(0, 10)
+    PagePadding.Parent = Page
+
+    table.insert(allTabButtons, TabBtn)
+    table.insert(allPages, Page)
+
+    -- Select first tab by default
+    if #allPages == 1 then
+        Page.Visible = true
+        TabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        TabBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    end
+
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, p in ipairs(allPages) do p.Visible = false end
+        for _, t in ipairs(allTabButtons) do
+            t.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+            t.ImageColor3 = Color3.fromRGB(150, 150, 150)
+        end
+        Page.Visible = true
+        TabBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        TabBtn.ImageColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+
+    return Page
+end
+
+-- Create Tabs with all your custom textures fully integrated
+local HomeTab = AddIconTab("rbxassetid://14456045412")      -- Home Texture
+local CombatTab = AddIconTab("rbxassetid://4391741881")     -- Combat Texture
+local CustomTab = AddIconTab("rbxassetid://97347592181196") -- Custom Tab Texture
+local EspTab = AddIconTab("rbxassetid://125083051256227")   -- ESP Texture
+local SettingsTab = AddIconTab("rbxassetid://134515081025675") -- Settings Texture
+
+-- Sample button inside Home Tab
+local SampleBtn = Instance.new("TextButton")
+SampleBtn.Size = UDim2.new(1, 0, 0, 32)
+SampleBtn.BackgroundColor3 = Color3.fromRGB(32, 32, 32)
+SampleBtn.Text = "SUFFIX-Ui Loaded Successfully!"
+SampleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SampleBtn.Font = Enum.Font.GothamMedium
+SampleBtn.TextSize = 13
+SampleBtn.Parent = HomeTab
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 6)
+BtnCorner.Parent = SampleBtn
+
+print("SUFFIX-Ui Library loaded with all custom textures successfully!")
